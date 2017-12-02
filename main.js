@@ -3,18 +3,13 @@ var gl;
 
 //LINES = 1, TRIANGLES = 4
 const renderMode = 1
-const width = height = 17
+const width = height = 5
 const spacing = .2
 const startpos = vec3(-width*spacing/2,width*spacing/2,0)
 
 window.onload = function init()
 {
   var canvas = document.getElementById( "gl-canvas" );
-
-  var vertices,indices,mesh;
-  mesh = new Mesh(startpos,height,width,spacing,renderMode)
-  vertices = mesh.positions
-  indices = mesh.indices
 
   gl = WebGLUtils.setupWebGL( canvas );
   if ( !gl ) { alert( "WebGL isn't available" ); }
@@ -34,6 +29,11 @@ window.onload = function init()
   gl.useProgram( program );
 
   // Load the data into the GPU
+
+  var vertices,indices,mesh;
+  mesh = new Mesh(startpos,height,width,spacing,renderMode)
+  vertices = mesh.positions
+  indices = mesh.indices
 
   var vertBuffer = gl.createBuffer();
   gl.bindBuffer( gl.ARRAY_BUFFER, vertBuffer );

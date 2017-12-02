@@ -22,6 +22,7 @@ class Mesh {
     console.log(this.indices)
 
   };
+
   spaceVec(inputVec,direction,amount) {
     var retVec = vec4(inputVec);
     retVec[0] += direction[0]*amount;
@@ -29,6 +30,7 @@ class Mesh {
     retVec[2] += direction[2]*amount;
     return retVec;
   }
+
   addVec(vec1,vec2) {
     var tmp = vec1;
     tmp[0] += vec2[0]
@@ -36,6 +38,7 @@ class Mesh {
     tmp[2] += vec2[2]
     return tmp;
   }
+
   diffVec(vec1,vec2) {
     var tmp = vec1;
     tmp[0] -= vec2[0]
@@ -43,6 +46,7 @@ class Mesh {
     tmp[2] -= vec2[2]
     return tmp;
   }
+
   scaleVec(vec1,s) {
     var tmp = vec1;
     tmp[0] *= s
@@ -50,12 +54,14 @@ class Mesh {
     tmp[2] *= s
     return tmp;
   }
+
   lengthVec(vec) {
-    var a = pow(vec[0],2)
-    var b = pow(vec[1],2)
-    var c = pow(vec[2],2)
-    return sqrt(a+b+c)
+    var a = Math.pow(vec[0],2)
+    var b = Math.pow(vec[1],2)
+    var c = Math.pow(vec[2],2)
+    return Math.sqrt(a+b+c)
   }
+
   setupMesh() {
     var v = [];
     for (var i=0;i<this.height;i++) {
@@ -68,6 +74,7 @@ class Mesh {
     }
     return v;
   }
+
   meshToWireframe(){
     var indices = []
     for (var i=0;i<this.height-1;i++) {
@@ -98,6 +105,7 @@ class Mesh {
     }
     return indices;
   }
+
   meshToTriangles() {
     var indices = []
     for (var i=0;i<this.height-1;i++) {
@@ -117,10 +125,15 @@ class Mesh {
     return indices;
   }
 
-  forceBetween(p1,p2,restLength) {
-    var diff = diffVec(p1,p2)
-    var dist = lengthVec(diff)
-    return
+  getRelPartID(id,off_x,off_y) {
+    return id+off_x+(off_y*width);
+  }
+
+  forceBetween(id1,id2,k) {
+    var diff = this.diffVec(vec3(this.positions[id1]),vec3(this.positions[id2]))
+    var dist = this.lengthVec(diff)
+    var normDiff = this.scaleVec(this.scaleVec(diff,this.spacing),1/dist)
+    return vec3(this.scaleVec(this.diffVec(diff,normDiff),k))
   }
 
   calculateForces() {
@@ -128,20 +141,23 @@ class Mesh {
     var i=0;
     while (i<this.width*this.height) {
       var allForces = [vec3(0,-9.81,0)]
-
       //Structural: restLength = this.spacing
       if (i%width > 0) {
         //Check left
+        allForces.push(this.forceBetween(i,this.getRelPartID(i,-1,0),this.k_struct))
       }
       if ((i+1)%width > 0) {
         //Check right
+        allForces.push(this.forceBetween(i,this.getRelPartID(i,1,0),this.k_struct))
       }
-      if (i/width > 0) {
+      if (Math.floor(i/width) > 0) {
         //Check top
+        allForces.push(this.forceBetween(i,this.getRelPartID(i,0,-1),this.k_struct))
       }
 
-      if (i/width < height-1) {
+      if (Math.floor(i/width) < height-1) {
         //Check bottom
+        allForces.push(this.forceBetween(i,this.getRelPartID(i,0,1),this.k_struct))
       }
       var netForce = allForces.reduce(this.addVec,vec3(0))
       forces[i] = netForce
