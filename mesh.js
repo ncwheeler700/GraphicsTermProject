@@ -7,8 +7,11 @@ class Mesh {
     this.x_spacing = this.scaleVec(vec3(1.,0,0),sp);
     this.y_spacing = this.scaleVec(vec3(0,1.,0),sp);
     this.k_struct = .1;
+    this.damping = .05
+    this.partMass = .1;
 
     this.velocities = []
+    this.isFixed = []
     this.positions = this.setupMesh();
     this.forces = this.calculateForces();
     console.log(this.forces)
@@ -19,7 +22,6 @@ class Mesh {
       this.indices = this.meshToWireframe()
     else if (mode == 4)
       this.indices = this.meshToTriangles()
-    console.log(this.indices)
 
   };
 
@@ -67,11 +69,15 @@ class Mesh {
     for (var i=0;i<this.height;i++) {
       v[i*this.width] = this.spaceVec(vec4(this.startpos),this.y_spacing,i);
       this.velocities[i*this.width] = vec3(0.0);
+      this.isFixed[i*this.width] = 0;
       for (var j=1;j<this.width;j++) {
         v[(i*this.width)+j] = this.spaceVec(vec4(v[i*this.width]),this.x_spacing,j);
         this.velocities[(i*this.width)+j] = vec3(0);
+        this.isFixed[i*this.width] = 0
       }
     }
+    this.isFixed[0] = 1;
+    this.isFixed[this.width-1] = 1;
     return v;
   }
 
@@ -164,6 +170,33 @@ class Mesh {
       i++;
     }
     return forces;
+  }
+
+  nextStep() {
+    this.calculateForces();
+    var newPositions = [];
+    var newVelocities = [];
+    for (var i=0;i<this.width*this.height;i++) {
+      if (this.isFixed[i]) {
+        newPositions.push(this.positions[i]);
+        newVelocities.push(this.velocities[i]);
+        continue
+      }
+
+      var dampedForce = this.diffVec(this.forces[i],this.scaleVec(this.velocities[i],this.damping));
+
+      var newAcl = this.scaleVec(dampedForce,1/this.partMass)
+      var newVel = this.addVec(this.scaleVec(newAcl,this.step), this.velocities[i])
+      var newPos = this.addVec(this.scaleVec(newVel,this.step), this.positions[i])
+
+      newPositions.push(newPos)
+      newVelocities.push(newVel)
+    }
+
+    for (var i=0;i<this.width*this.height;i++) {
+      this.positions[i] = vec3(newPositions[i])
+      this.velocities[i] = vec3(newVelocities[i])
+    }
   }
 
 };

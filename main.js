@@ -32,8 +32,16 @@ window.onload = function init()
 
   var vertices,indices,mesh;
   mesh = new Mesh(startpos,height,width,spacing,renderMode)
+
+  for (var i=0;i<1;i++) {
+    mesh.nextStep();
+  }
+
   vertices = mesh.positions
   indices = mesh.indices
+
+  console.log(mesh.positions)
+  console.log(mesh.indices)
 
   var vertBuffer = gl.createBuffer();
   gl.bindBuffer( gl.ARRAY_BUFFER, vertBuffer );
