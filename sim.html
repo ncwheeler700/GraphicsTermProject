@@ -10,7 +10,7 @@ main()
 {
     mat4 MVP;
     MVP = mat4(1);
-    MVP[3][3] = 3.0;
+    MVP[3][3] = 10.0;
     gl_Position = MVP*vPosition;
 }
 </script>
@@ -34,7 +34,7 @@ main()
 </head>
 
 <body>
-<canvas id="gl-canvas" width="900" height="900">
+<canvas id="gl-canvas" width="500" height="500">
 Oops ... your browser doesn't support the HTML5 canvas element
 </canvas>
 </body>

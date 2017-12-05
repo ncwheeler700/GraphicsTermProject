@@ -4,8 +4,8 @@ var gl;
 //LINES = 1, TRIANGLES = 4
 const renderMode = 1
 const width = height = 5
-const spacing = .2
-const startpos = vec3(-width*spacing/2,width*spacing/2,0)
+const spacing = 2
+const startpos = vec3(-height*spacing/2,width*spacing/2,0)
 
 window.onload = function init()
 {
@@ -33,7 +33,7 @@ window.onload = function init()
   var vertices,indices,mesh;
   mesh = new Mesh(startpos,height,width,spacing,renderMode)
 
-  for (var i=0;i<1;i++) {
+  for (var i=0;i<10000;i++) {
     mesh.nextStep();
   }
 

@@ -6,7 +6,8 @@ class Mesh {
     this.spacing = sp
     this.x_spacing = this.scaleVec(vec3(1.,0,0),sp);
     this.y_spacing = this.scaleVec(vec3(0,1.,0),sp);
-    this.k_struct = .1;
+    this.k_struct = 100;
+    this.k_shear = 50;
     this.damping = .05
     this.partMass = .1;
 
@@ -34,7 +35,7 @@ class Mesh {
   }
 
   addVec(vec1,vec2) {
-    var tmp = vec1;
+    var tmp = vec3(vec1);
     tmp[0] += vec2[0]
     tmp[1] += vec2[1]
     tmp[2] += vec2[2]
@@ -42,7 +43,7 @@ class Mesh {
   }
 
   diffVec(vec1,vec2) {
-    var tmp = vec1;
+    var tmp = vec3(vec1);
     tmp[0] -= vec2[0]
     tmp[1] -= vec2[1]
     tmp[2] -= vec2[2]
@@ -50,7 +51,7 @@ class Mesh {
   }
 
   scaleVec(vec1,s) {
-    var tmp = vec1;
+    var tmp = vec3(vec1);
     tmp[0] *= s
     tmp[1] *= s
     tmp[2] *= s
@@ -76,7 +77,7 @@ class Mesh {
         this.isFixed[i*this.width] = 0
       }
     }
-    this.isFixed[0] = 1;
+    // this.isFixed[0] = 1;
     this.isFixed[this.width-1] = 1;
     return v;
   }
@@ -138,8 +139,9 @@ class Mesh {
   forceBetween(id1,id2,k) {
     var diff = this.diffVec(vec3(this.positions[id1]),vec3(this.positions[id2]))
     var dist = this.lengthVec(diff)
-    var normDiff = this.scaleVec(this.scaleVec(diff,this.spacing),1/dist)
-    return vec3(this.scaleVec(this.diffVec(diff,normDiff),k))
+    var normDiff = this.scaleVec(diff,this.spacing/dist)
+    var force = vec3(this.scaleVec(this.diffVec(normDiff,diff),k))
+    return force
   }
 
   calculateForces() {
@@ -147,54 +149,64 @@ class Mesh {
     var i=0;
     while (i<this.width*this.height) {
       var allForces = [vec3(0,-9.81,0)]
-      //Structural: restLength = this.spacing
-      if (i%width > 0) {
-        //Check left
+      //Structural
+      //Check left
+      if (i%width > 0)
         allForces.push(this.forceBetween(i,this.getRelPartID(i,-1,0),this.k_struct))
-      }
-      if ((i+1)%width > 0) {
-        //Check right
+      //Check right
+      if ((i+1)%width > 0)
         allForces.push(this.forceBetween(i,this.getRelPartID(i,1,0),this.k_struct))
-      }
-      if (Math.floor(i/width) > 0) {
-        //Check top
+      //Check top
+      if (Math.floor(i/width) > 0)
         allForces.push(this.forceBetween(i,this.getRelPartID(i,0,-1),this.k_struct))
-      }
-
-      if (Math.floor(i/width) < height-1) {
-        //Check bottom
+      //Check bottom
+      if (Math.floor(i/width) < height-1)
         allForces.push(this.forceBetween(i,this.getRelPartID(i,0,1),this.k_struct))
-      }
+
+      //Bend
+      //Check top-left
+      if (i%width > 0 && Math.floor(i/width) > 0)
+        allForces.push(this.forceBetween(i,this.getRelPartID(i,-1,-1),this.k_shear))
+      //Check top-right
+      if ((i+1)%width > 0 && Math.floor(i/width) > 0)
+        allForces.push(this.forceBetween(i,this.getRelPartID(i,1,-1),this.k_shear))
+      //Check bottom-left
+      if (i%width > 0 && Math.floor(i/width) < height-1)
+        allForces.push(this.forceBetween(i,this.getRelPartID(i,-1,1),this.k_shear))
+      //Check bottom-right
+      if ((i+1)%width > 0 && Math.floor(i/width) < height-1)
+        allForces.push(this.forceBetween(i,this.getRelPartID(i,1,1),this.k_shear))
+
       var netForce = allForces.reduce(this.addVec,vec3(0))
-      forces[i] = netForce
+      forces[i] = vec3(netForce)
       i++;
     }
     return forces;
   }
 
   nextStep() {
-    this.calculateForces();
+    this.forces = this.calculateForces();
     var newPositions = [];
     var newVelocities = [];
     for (var i=0;i<this.width*this.height;i++) {
       if (this.isFixed[i]) {
-        newPositions.push(this.positions[i]);
-        newVelocities.push(this.velocities[i]);
+        newPositions.push(vec3(this.positions[i]));
+        newVelocities.push(vec3(this.velocities[i]));
         continue
       }
 
-      var dampedForce = this.diffVec(this.forces[i],this.scaleVec(this.velocities[i],this.damping));
+      var dampedForce = this.diffVec(vec3(this.forces[i]),this.scaleVec(this.velocities[i],this.damping));
 
       var newAcl = this.scaleVec(dampedForce,1/this.partMass)
-      var newVel = this.addVec(this.scaleVec(newAcl,this.step), this.velocities[i])
-      var newPos = this.addVec(this.scaleVec(newVel,this.step), this.positions[i])
+      var newVel = this.addVec(this.scaleVec(newAcl,this.step), vec3(this.velocities[i]))
+      var newPos = this.addVec(this.scaleVec(newVel,this.step), vec3(this.positions[i]))
 
       newPositions.push(newPos)
       newVelocities.push(newVel)
     }
 
     for (var i=0;i<this.width*this.height;i++) {
-      this.positions[i] = vec3(newPositions[i])
+      this.positions[i] = vec4(newPositions[i])
       this.velocities[i] = vec3(newVelocities[i])
     }
   }
