@@ -79,6 +79,8 @@ class Mesh {
       }
     }
     this.isFixed[0] = 1;
+    v[0][2] -= 5;
+    v[this.width-1][2] += 5;
     this.isFixed[this.width-1] = 1;
     return v;
   }
@@ -118,6 +120,7 @@ class Mesh {
     var indices = []
     for (var i=0;i<this.height-1;i++) {
       for (var j=0;j<this.width-1;j++) {
+        var a,b,c,d
         a = (i*this.width)+j
         b = (i*this.width)+j+1
         c = ((i+1)*this.width)+j

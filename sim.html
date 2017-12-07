@@ -4,6 +4,7 @@
 
 <script id="vertex-shader" type="x-shader/x-vertex">
 attribute vec4 vPosition;
+varying float zpos;
 
 void
 main()
@@ -12,16 +13,18 @@ main()
     MVP = mat4(1);
     MVP[3][3] = 10.0;
     gl_Position = MVP*vPosition;
+    zpos = gl_Position.z;
 }
 </script>
 
 <script id="fragment-shader" type="x-shader/x-fragment">
 precision mediump float;
+varying float zpos;
 
 void
 main()
 {
-    gl_FragColor = vec4( 1, 1.0, 1.0, 1.0 );
+    gl_FragColor = vec4( .3-.1*zpos, .3-.1*zpos,.3-.1*zpos, 1.0 );
 }
 </script>
 

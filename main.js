@@ -2,8 +2,8 @@
 var gl;
 
 const LINES = 1, TRIANGLES = 4
-const renderMode = LINES
-const width = height = 9
+const renderMode = TRIANGLES
+const width = height = 11
 const spacing = 2
 const startpos = vec3(-height*spacing/2,width*spacing/2,0)
 
