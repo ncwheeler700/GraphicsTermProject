@@ -1,9 +1,9 @@
 
 var gl;
 
-//LINES = 1, TRIANGLES = 4
-const renderMode = 1
-const width = height = 5
+const LINES = 1, TRIANGLES = 4
+const renderMode = LINES
+const width = height = 9
 const spacing = 2
 const startpos = vec3(-height*spacing/2,width*spacing/2,0)
 
@@ -33,25 +33,16 @@ window.onload = function init()
   var vertices,indices,mesh;
   mesh = new Mesh(startpos,height,width,spacing,renderMode)
 
-  for (var i=0;i<10000;i++) {
-    mesh.nextStep();
-  }
-
   vertices = mesh.positions
   indices = mesh.indices
 
-  console.log(mesh.positions)
-  console.log(mesh.indices)
-
   var vertBuffer = gl.createBuffer();
   gl.bindBuffer( gl.ARRAY_BUFFER, vertBuffer );
-  gl.bufferData( gl.ARRAY_BUFFER, flatten(vertices), gl.STATIC_DRAW );
+  gl.bufferData( gl.ARRAY_BUFFER, new Float32Array(flatten(vertices)), gl.DYNAMIC_DRAW );
 
   var indexBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
-
-  // Associate out shader variables with our data buffer
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.DYNAMIC_DRAW);
 
   var vPosition = gl.getAttribLocation( program, "vPosition" );
   gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 );
@@ -60,4 +51,29 @@ window.onload = function init()
   gl.clear(gl.COLOR_BUFFER_BIT);
   gl.drawElements(renderMode,indices.length,gl.UNSIGNED_SHORT,indexBuffer)
 
+  var animate = function() {
+    window.requestAnimationFrame(animate)
+    for (var i=0;i<20;i++) {
+      mesh.nextStep();
+    }
+    refresh(mesh,indexBuffer)
+  }
+  animate()
+
+}
+
+
+
+refresh = function(mesh,indexBuffer) {
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    vertices = mesh.positions
+    indices = mesh.indices
+
+    // Associate out shader variables with our data buffer
+    gl.bufferData( gl.ARRAY_BUFFER,new Float32Array(flatten(vertices)),gl.DYNAMIC_DRAW);
+    gl.drawElements(renderMode,indices.length,gl.UNSIGNED_SHORT,indexBuffer)
+
 };
+
+
+// render = function(mesh,indexBuffer)

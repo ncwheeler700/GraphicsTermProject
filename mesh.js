@@ -6,10 +6,11 @@ class Mesh {
     this.spacing = sp
     this.x_spacing = this.scaleVec(vec3(1.,0,0),sp);
     this.y_spacing = this.scaleVec(vec3(0,1.,0),sp);
-    this.k_struct = 100;
-    this.k_shear = 50;
-    this.damping = .05
-    this.partMass = .1;
+    this.k_struct = 50;
+    this.k_shear = 25;
+    this.k_bend = 25;
+    this.damping = 5
+    this.invMass = 1/10;
 
     this.velocities = []
     this.isFixed = []
@@ -18,7 +19,7 @@ class Mesh {
     console.log(this.forces)
     console.log(this.positions)
     this.time = 0;
-    this.step = .001;
+    this.step = .01;
     if (mode == 1)
       this.indices = this.meshToWireframe()
     else if (mode == 4)
@@ -27,7 +28,7 @@ class Mesh {
   };
 
   spaceVec(inputVec,direction,amount) {
-    var retVec = vec4(inputVec);
+    var retVec = inputVec;
     retVec[0] += direction[0]*amount;
     retVec[1] -= direction[1]*amount;
     retVec[2] += direction[2]*amount;
@@ -35,7 +36,7 @@ class Mesh {
   }
 
   addVec(vec1,vec2) {
-    var tmp = vec3(vec1);
+    var tmp = vec1;
     tmp[0] += vec2[0]
     tmp[1] += vec2[1]
     tmp[2] += vec2[2]
@@ -43,7 +44,7 @@ class Mesh {
   }
 
   diffVec(vec1,vec2) {
-    var tmp = vec3(vec1);
+    var tmp = vec1;
     tmp[0] -= vec2[0]
     tmp[1] -= vec2[1]
     tmp[2] -= vec2[2]
@@ -77,7 +78,7 @@ class Mesh {
         this.isFixed[i*this.width] = 0
       }
     }
-    // this.isFixed[0] = 1;
+    this.isFixed[0] = 1;
     this.isFixed[this.width-1] = 1;
     return v;
   }
@@ -136,11 +137,13 @@ class Mesh {
     return id+off_x+(off_y*width);
   }
 
-  forceBetween(id1,id2,k) {
-    var diff = this.diffVec(vec3(this.positions[id1]),vec3(this.positions[id2]))
+  forceBetween(id1,id2,k,spacing) {
+    var pos1 = vec3(this.positions[id1])
+    var pos2 = vec3(this.positions[id2])
+    var diff = this.diffVec(pos1,pos2)
     var dist = this.lengthVec(diff)
-    var normDiff = this.scaleVec(diff,this.spacing/dist)
-    var force = vec3(this.scaleVec(this.diffVec(normDiff,diff),k))
+    var normDiff = this.scaleVec(diff,spacing/dist)
+    var force = this.scaleVec(this.diffVec(normDiff,diff),k)
     return force
   }
 
@@ -152,54 +155,71 @@ class Mesh {
       //Structural
       //Check left
       if (i%width > 0)
-        allForces.push(this.forceBetween(i,this.getRelPartID(i,-1,0),this.k_struct))
+        allForces.push(this.forceBetween(i,this.getRelPartID(i,-1,0),this.k_struct,this.spacing))
       //Check right
       if ((i+1)%width > 0)
-        allForces.push(this.forceBetween(i,this.getRelPartID(i,1,0),this.k_struct))
+        allForces.push(this.forceBetween(i,this.getRelPartID(i,1,0),this.k_struct,this.spacing))
       //Check top
       if (Math.floor(i/width) > 0)
-        allForces.push(this.forceBetween(i,this.getRelPartID(i,0,-1),this.k_struct))
+        allForces.push(this.forceBetween(i,this.getRelPartID(i,0,-1),this.k_struct,this.spacing))
       //Check bottom
       if (Math.floor(i/width) < height-1)
-        allForces.push(this.forceBetween(i,this.getRelPartID(i,0,1),this.k_struct))
+        allForces.push(this.forceBetween(i,this.getRelPartID(i,0,1),this.k_struct,this.spacing))
 
       //Bend
       //Check top-left
       if (i%width > 0 && Math.floor(i/width) > 0)
-        allForces.push(this.forceBetween(i,this.getRelPartID(i,-1,-1),this.k_shear))
+        allForces.push(this.forceBetween(i,this.getRelPartID(i,-1,-1),this.k_shear,this.spacing*.707))
       //Check top-right
       if ((i+1)%width > 0 && Math.floor(i/width) > 0)
-        allForces.push(this.forceBetween(i,this.getRelPartID(i,1,-1),this.k_shear))
+        allForces.push(this.forceBetween(i,this.getRelPartID(i,1,-1),this.k_shear,this.spacing*.707))
       //Check bottom-left
       if (i%width > 0 && Math.floor(i/width) < height-1)
-        allForces.push(this.forceBetween(i,this.getRelPartID(i,-1,1),this.k_shear))
+        allForces.push(this.forceBetween(i,this.getRelPartID(i,-1,1),this.k_shear,this.spacing*.707))
       //Check bottom-right
       if ((i+1)%width > 0 && Math.floor(i/width) < height-1)
-        allForces.push(this.forceBetween(i,this.getRelPartID(i,1,1),this.k_shear))
+        allForces.push(this.forceBetween(i,this.getRelPartID(i,1,1),this.k_shear,this.spacing*.707))
+
+      //Bend
+      //Check left
+      if (i%width > 1)
+        allForces.push(this.forceBetween(i,this.getRelPartID(i,-2,0),this.k_bend,this.spacing*2))
+      //Check right
+      if ((i+2)%width > 1)
+        allForces.push(this.forceBetween(i,this.getRelPartID(i,2,0),this.k_bend,this.spacing*2))
+      //Check top
+      if (Math.floor(i/width) > 1)
+        allForces.push(this.forceBetween(i,this.getRelPartID(i,0,-2),this.k_bend,this.spacing*2))
+      //Check bottom
+      if (Math.floor(i/width) < height-2)
+        allForces.push(this.forceBetween(i,this.getRelPartID(i,0,2),this.k_bend,this.spacing*2))
 
       var netForce = allForces.reduce(this.addVec,vec3(0))
-      forces[i] = vec3(netForce)
+      forces[i] = netForce
       i++;
     }
     return forces;
   }
 
   nextStep() {
+    var oldForces = this.forces.slice();
     this.forces = this.calculateForces();
     var newPositions = [];
     var newVelocities = [];
     for (var i=0;i<this.width*this.height;i++) {
       if (this.isFixed[i]) {
-        newPositions.push(vec3(this.positions[i]));
-        newVelocities.push(vec3(this.velocities[i]));
+        newPositions.push(this.positions[i]);
+        newVelocities.push(this.velocities[i]);
         continue
       }
 
-      var dampedForce = this.diffVec(vec3(this.forces[i]),this.scaleVec(this.velocities[i],this.damping));
+      var dampedForce = this.diffVec(this.forces[i],this.scaleVec(this.velocities[i],this.damping));
 
-      var newAcl = this.scaleVec(dampedForce,1/this.partMass)
-      var newVel = this.addVec(this.scaleVec(newAcl,this.step), vec3(this.velocities[i]))
-      var newPos = this.addVec(this.scaleVec(newVel,this.step), vec3(this.positions[i]))
+      var oldAcl = this.scaleVec(oldForces[i],this.invMass)
+      var newAcl = this.scaleVec(dampedForce,this.invMass)
+      var newVel = this.addVec(this.scaleVec(this.addVec(newAcl,oldAcl),this.step/2), this.velocities[i])
+      var newPos = this.addVec(this.scaleVec(newVel,this.step), this.positions[i])
+      newPos = this.addVec(newPos,this.scaleVec(oldAcl,.5*this.step*this.step))
 
       newPositions.push(newPos)
       newVelocities.push(newVel)
@@ -207,7 +227,7 @@ class Mesh {
 
     for (var i=0;i<this.width*this.height;i++) {
       this.positions[i] = vec4(newPositions[i])
-      this.velocities[i] = vec3(newVelocities[i])
+      this.velocities[i] = newVelocities[i]
     }
   }
 
