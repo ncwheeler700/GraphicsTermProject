@@ -6,12 +6,14 @@
 attribute vec4 vPosition;
 varying float zpos;
 
+uniform float scale;
+
 void
 main()
 {
     mat4 MVP;
     MVP = mat4(1);
-    MVP[3][3] = 10.0;
+    MVP[3][3] = scale;
     gl_Position = MVP*vPosition;
     zpos = gl_Position.z;
 }
