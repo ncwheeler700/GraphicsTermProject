@@ -55,32 +55,29 @@ window.onload = function init()
   gl.clear(gl.COLOR_BUFFER_BIT);
   gl.drawElements(renderMode,indices.length,gl.UNSIGNED_SHORT,indexBuffer)
 
-    var mousedown = false;
-    var nearest = 0;
-    var mouse_x = 0;
-    var mouse_y = 0;
+  var mousedown = false;
+  var nearest = 0;
+  var mouse_x = 0;
+  var mouse_y = 0;
 
-    document.onmousemove = function(event) {
-	mouse_x = event.x - 10 - (canvas.width/2);
-	mouse_y = -(event.y - 10 - (canvas.height/2));
-	mouse_x = mouse_x * scale / (canvas.width/2);
-	mouse_y = mouse_y * scale / (canvas.height/2);
-	if (mousedown == false) {
-	    nearest = nearest_point(mesh.positions, mouse_x, mouse_y);
-	    console.log(nearest);
-	}
+  document.onmousemove = function(event) {
+    mouse_x = event.x - 10 - (canvas.width/2);
+    mouse_y = -(event.y - 10 - (canvas.height/2));
+    mouse_x = mouse_x * scale / (canvas.width/2);
+    mouse_y = mouse_y * scale / (canvas.height/2);
+    if (mousedown == false) {
+      nearest = nearest_point(mesh.positions, mouse_x, mouse_y);
     }
+  }
 
-    document.onmousedown = function() {
-	mousedown = true;
-    }
+  document.onmousedown = function() {
+    mousedown = true;
+  }
 
-    document.onmouseup = function() {
-	mousedown = false;
-    }
-
-
-    
+  document.onmouseup = function() {
+    mousedown = false;
+  }
+  
   var animate = function() {
     window.requestAnimationFrame(animate)
     for (var i=0;i<20;i++) {
@@ -103,24 +100,25 @@ window.onload = function init()
 }
 
 function distance(x,y,x2,y2) {
-    d1 = x - x2;
-    d2 = y - y2;
-    return Math.sqrt(d1*d1 + d2*d2);
+  d1 = x - x2;
+  d2 = y - y2;
+  return Math.sqrt(d1*d1 + d2*d2);
 }
 
 function nearest_point(vertices, x, y) {
 
-    var near = 0;
-    min_dist = 100;
-    for (i = 0; i < vertices.length; i++) {
-	dist = distance(x, y, vertices[i][0], vertices[i][1])
-        if (dist < min_dist) {
-	    near = i;
-	    min_dist = dist;
-	}
-    }
+  var near = 0;
+  min_dist = 100;
+  for (i = 0; i < vertices.length; i++) {
+    dist = distance(x, y, vertices[i][0], vertices[i][1])
+      if (dist < min_dist) {
+	near = i;
+	min_dist = dist;
+      }
+  }
 
-    return near;
+  return near;
+
 }
 
 refresh = function(mesh,indexBuffer) {
