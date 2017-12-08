@@ -11,6 +11,7 @@ class Mesh {
     this.k_bend = 25;
     this.damping = 5
     this.invMass = 1/10;
+    this.mouseforce = [-1,vec3(0)]
 
     this.velocities = []
     this.isFixed = []
@@ -80,7 +81,7 @@ class Mesh {
     }
     this.isFixed[0] = 1;
     v[0][2] -= 5;
-    v[this.width-1][2] += 5;
+    v[this.width-1][2] -= 5;
     this.isFixed[this.width-1] = 1;
     return v;
   }
@@ -140,6 +141,12 @@ class Mesh {
     return id+off_x+(off_y*width);
   }
 
+  addMouseForce(index, mousepos) {
+    var tmp = this.scaleVec(this.diffVec(mousepos,this.positions[index]),30)
+    tmp[2] = 0;
+    this.mouseforce = [index,tmp];
+  }
+
   forceBetween(id1,id2,k,spacing) {
     var pos1 = vec3(this.positions[id1])
     var pos2 = vec3(this.positions[id2])
@@ -155,6 +162,11 @@ class Mesh {
     var i=0;
     while (i<this.width*this.height) {
       var allForces = [vec3(0,-9.81,0)]
+
+      if (this.mouseforce[0] == i) {
+        allForces.push(this.mouseforce[1])
+        console.log(this.mouseforce[1])
+      }
       //Structural
       //Check left
       if (i%width > 0)

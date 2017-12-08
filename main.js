@@ -1,7 +1,7 @@
 
 var gl;
 
-const LINES = 1, TRIANGLES = 4
+const WIREFRAME = 1, TRIANGLES = 4
 const renderMode = TRIANGLES
 const width = height = 11
 const spacing = 2
@@ -51,7 +51,7 @@ window.onload = function init()
   var scale = 15.0;
   var scale_uniform = gl.getUniformLocation( program, "scale" );
   gl.uniform1f(scale_uniform, scale);
-    
+
   gl.clear(gl.COLOR_BUFFER_BIT);
   gl.drawElements(renderMode,indices.length,gl.UNSIGNED_SHORT,indexBuffer)
 
@@ -76,27 +76,29 @@ window.onload = function init()
 
   document.onmouseup = function() {
     mousedown = false;
+    mesh.mouseforce = [-1,vec3(0)]
   }
-  
+
   var animate = function() {
     window.requestAnimationFrame(animate)
     for (var i=0;i<20;i++) {
       mesh.nextStep();
     }
       if (mousedown == true) {
-	  mesh.positions[nearest][0] = mouse_x;
-	  mesh.positions[nearest][1] = mouse_y;
+        mesh.addMouseForce(nearest,vec3(mouse_x,mouse_y,0))
+	  // mesh.positions[nearest][0] = mouse_x;
+	  // mesh.positions[nearest][1] = mouse_y;
       }
     refresh(mesh,indexBuffer)
   }
   animate()
-    
+
   /* From my observation, it appears that the upper left corner of the canvas is at
    * (10,10) rather than (0,0), so I'll have to account for that offset in the final calculation.
-   * Additionally, the world scale is defined in the shader 
+   * Additionally, the world scale is defined in the shader
    */
 
-    
+
 }
 
 function distance(x,y,x2,y2) {
