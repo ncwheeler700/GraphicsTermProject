@@ -2,7 +2,7 @@
 var gl;
 
 const WIREFRAME = 1, TRIANGLES = 4
-const renderMode = TRIANGLES
+var renderMode = TRIANGLES
 const width = height = 11
 const spacing = 2
 const startpos = vec3(-height*spacing/2,width*spacing/2,0)
@@ -79,6 +79,20 @@ window.onload = function init()
     mesh.mouseforce = [-1,vec3(0)]
   }
 
+  var dropdown = document.getElementById( "render-mode-selector" );
+  dropdown.onchange = function() {
+      var selected = dropdown.options[dropdown.selectedIndex].value;
+      if (selected == "cloth") {
+      	  renderMode = TRIANGLES;
+	  mesh.indices = mesh.meshToTriangles();
+	  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(mesh.indices), gl.DYNAMIC_DRAW);
+      } else {
+      	  renderMode = WIREFRAME;
+	  mesh.indices = mesh.meshToWireframe();
+	  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(mesh.indices), gl.DYNAMIC_DRAW);
+      }
+  }
+    
   var animate = function() {
     window.requestAnimationFrame(animate)
     for (var i=0;i<5;i++) {

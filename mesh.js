@@ -17,8 +17,6 @@ class Mesh {
     this.isFixed = []
     this.positions = this.setupMesh();
     this.forces = this.calculateForces();
-    console.log(this.forces)
-    console.log(this.positions)
     this.time = 0;
     this.step = .01;
     if (mode == 1)
@@ -165,7 +163,6 @@ class Mesh {
 
       if (this.mouseforce[0] == i) {
         allForces.push(this.mouseforce[1])
-        console.log(this.mouseforce[1])
       }
       //Structural
       //Check left
