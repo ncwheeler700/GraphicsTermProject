@@ -81,7 +81,7 @@ window.onload = function init()
 
   var animate = function() {
     window.requestAnimationFrame(animate)
-    for (var i=0;i<20;i++) {
+    for (var i=0;i<5;i++) {
       mesh.nextStep();
     }
       if (mousedown == true) {

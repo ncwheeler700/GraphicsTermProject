@@ -6,9 +6,9 @@ class Mesh {
     this.spacing = sp
     this.x_spacing = this.scaleVec(vec3(1.,0,0),sp);
     this.y_spacing = this.scaleVec(vec3(0,1.,0),sp);
-    this.k_struct = 50;
+    this.k_struct = 250;
     this.k_shear = 25;
-    this.k_bend = 25;
+    this.k_bend = 250;
     this.damping = 5
     this.invMass = 1/10;
     this.mouseforce = [-1,vec3(0)]
