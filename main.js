@@ -81,6 +81,9 @@ window.onload = function init()
 
   document.onmouseup = function() {
     mousedown = false;
+    if (clickToFix) {
+      mesh.isFixed[mesh.mouseforce[0]] = !mesh.isFixed[mesh.mouseforce[0]]
+    }
     mesh.mouseforce = [-1,vec3(0)]
   }
   document.getElementById("struct_slider").onchange = function(event)  {
@@ -124,10 +127,8 @@ window.onload = function init()
     for (var i=0;i<5;i++) {
       mesh.nextStep();
     }
-      if (mousedown && !clickToFix) {
+      if (mousedown) {
         mesh.addMouseForce(nearest,vec3(mouse_x,mouse_y,0))
-      } else if (mousedown) {
-        mesh.isFixed[nearest] = !mesh.isFixed[nearest]
       }
     refresh(mesh,indexBuffer)
   }
