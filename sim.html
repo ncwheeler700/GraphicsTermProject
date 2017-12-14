@@ -46,9 +46,26 @@ Oops ... your browser doesn't support the HTML5 canvas element
   <label> Render Mode: </label>
   <select id="render-mode-selector">
     <option value="cloth">CLOTH</option>
-    <option value="wire">WIREFRAME</option> 
+    <option value="wire">WIREFRAME</option>
   </select>
+  <button id="toggleClickFix">Click to fix: Off</button>
 </div>
+<div>
+Structural Spring Constant: 1 <input id="struct_slider" type="range"
+min="1" max="1000" step="1" value="250" />
+1000
+</div>
+
+<div>
+Shear Spring constant: 0 <input id="shear_slider" type="range"
+ min="0" max="100" step="1" value="25" />
+ 100
+</div>
+<div>
+Bend Spring Constant: 0 <input id="bend_slider" type="range"
+  min="0" max="500" step="1" value="100" />
+  500
+ </div>
 
 </body>
 </html>

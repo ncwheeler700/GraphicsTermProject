@@ -6,11 +6,12 @@ var renderMode = TRIANGLES
 const width = height = 11
 const spacing = 2
 const startpos = vec3(-height*spacing/2,width*spacing/2,0)
+var struct_k,shear_k,bend_k,clickToFix
 
 window.onload = function init()
 {
   var canvas = document.getElementById( "gl-canvas" );
-
+  clickToFix = false;
   gl = WebGLUtils.setupWebGL( canvas );
   if ( !gl ) { alert( "WebGL isn't available" ); }
 
@@ -35,6 +36,10 @@ window.onload = function init()
 
   vertices = mesh.positions
   indices = mesh.indices
+
+  struct_k = mesh.k_struct
+  shear_k = mesh.k_shear
+  bend_k = mesh.k_bend
 
   var vertBuffer = gl.createBuffer();
   gl.bindBuffer( gl.ARRAY_BUFFER, vertBuffer );
@@ -78,6 +83,24 @@ window.onload = function init()
     mousedown = false;
     mesh.mouseforce = [-1,vec3(0)]
   }
+  document.getElementById("struct_slider").onchange = function(event)  {
+    struct_k = event.target.value;
+  };
+  document.getElementById("shear_slider").onchange = function(event)  {
+    shear_k = event.target.value;
+  };
+  document.getElementById("bend_slider").onchange = function(event)  {
+    bend_k = event.target.value;
+  };
+
+  document.getElementById("toggleClickFix").onclick = function() {
+    if (clickToFix) {
+      document.getElementById("toggleClickFix").innerText="Click to fix: Off"
+    } else {
+      document.getElementById("toggleClickFix").innerText="Click to fix: On"
+    }
+    clickToFix = !clickToFix
+  }
 
   var dropdown = document.getElementById( "render-mode-selector" );
   dropdown.onchange = function() {
@@ -92,16 +115,19 @@ window.onload = function init()
 	  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(mesh.indices), gl.DYNAMIC_DRAW);
       }
   }
-    
+
   var animate = function() {
     window.requestAnimationFrame(animate)
+    mesh.k_struct = struct_k
+    mesh.k_shear = shear_k
+    mesh.k_bend = bend_k
     for (var i=0;i<5;i++) {
       mesh.nextStep();
     }
-      if (mousedown == true) {
+      if (mousedown && !clickToFix) {
         mesh.addMouseForce(nearest,vec3(mouse_x,mouse_y,0))
-	  // mesh.positions[nearest][0] = mouse_x;
-	  // mesh.positions[nearest][1] = mouse_y;
+      } else if (mousedown) {
+        mesh.isFixed[nearest] = !mesh.isFixed[nearest]
       }
     refresh(mesh,indexBuffer)
   }
